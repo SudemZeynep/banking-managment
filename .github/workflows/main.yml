@@ -1,52 +1,15 @@
-name: Banking Management CI/CD
-
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
-
-      # Dosyalar myapp/myapp içinde olduğu için o klasöre girmesini söylüyoruz
-      - name: Build with Gradle
-        working-directory: ./myapp/myapp
-        run: |
-          chmod +x gradlew
-          ./gradlew build -x test
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./myapp/myapp
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/banking-app:latest
-
-      - name: Deploy to EC2 via SSH
+- name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Dockerhub'dan en güncel imajı çek
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banking-app:latest
-            # EC2 tarafında docker-compose.yml dosyasının nerede olduğunu belirtmek gerekebilir
-            # Eğer hata verirse burayı da düzenleyeceğiz
-            docker-compose up -d
+            
+            # Eğer varsa eski konteyneri temizle ve yeni imajla başlat
+            # sudo ekleyerek yetki sorunlarını, full path ile komut sorunlarını çözüyoruz
+            sudo docker stop banking-container || true
+            sudo docker rm banking-container || true
+            sudo docker run -d --name banking-container -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/banking-app:latest
