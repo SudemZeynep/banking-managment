@@ -3,26 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banking Management System | Live</title>
+    <title>Global Bank | Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; max-width: 500px; border-top: 10px solid #27ae60; }
-        h1 { color: #2c3e50; font-size: 24px; margin-bottom: 10px; }
-        p { color: #7f8c8d; line-height: 1.6; }
-        .badge { background: #e8faf0; color: #27ae60; padding: 8px 15px; border-radius: 50px; font-weight: bold; font-size: 14px; display: inline-block; margin: 20px 0; }
-        .footer { margin-top: 30px; font-size: 12px; color: #bdc3c7; border-top: 1px solid #eee; padding-top: 20px; }
+        :root { --primary: #1a237e; --secondary: #3949ab; --success: #43a047; --bg: #f5f7fb; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; color: #333; }
+        .sidebar { width: 250px; background: var(--primary); height: 100vh; position: fixed; color: white; padding: 20px; }
+        .main-content { margin-left: 270px; padding: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .balance { font-size: 24px; font-weight: bold; color: var(--primary); margin: 10px 0; }
+        .transaction-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 12px; overflow: hidden; }
+        .transaction-table th, .transaction-table td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        .transaction-table th { background: #f8f9fa; color: #666; }
+        .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-up { background: #e8f5e9; color: #2e7d32; }
+        .nav-item { padding: 12px; margin: 8px 0; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
+        .nav-item:hover { background: var(--secondary); }
+        .active { background: var(--secondary); }
+        .ci-cd-status { position: fixed; bottom: 20px; right: 20px; background: #fff; padding: 15px; border-radius: 10px; border-left: 5px solid var(--success); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Banking Management System</h1>
-        <p>Proje başarıyla yayına alınmıştır.</p>
-        <div class="badge">● Sistem Durumu: Aktif (AWS EC2)</div>
-        <p>Bu sayfa <b>GitHub Actions</b> üzerinden otomatik olarak Build, Push ve Deploy edilmiştir.</p>
-        <div class="footer">
-            Sakarya Üniversitesi - Yazılım Mühendisliği<br>
-            CI/CD Pipeline Otomasyon Testi
+
+<div class="sidebar">
+    <h2>Global Bank</h2>
+    <div class="nav-item active"><i class="fas fa-home"></i> Dashboard</div>
+    <div class="nav-item"><i class="fas fa-exchange-alt"></i> İşlemler</div>
+    <div class="nav-item"><i class="fas fa-user-friends"></i> Müşteriler</div>
+    <div class="nav-item"><i class="fas fa-credit-card"></i> Kartlar</div>
+    <div class="nav-item"><i class="fas fa-cog"></i> Ayarlar</div>
+</div>
+
+<div class="main-content">
+    <div class="header">
+        <h1>Yönetim Paneli</h1>
+        <div style="background: white; padding: 10px 20px; border-radius: 8px;">
+            <i class="fas fa-user"></i> <b>Admin: Sudem Zeynep</b>
         </div>
     </div>
+
+    <div class="card-grid">
+        <div class="card">
+            <p>Toplam Bakiye</p>
+            <div class="balance">₺1,245,600.00</div>
+            <span style="color: var(--success);"><i class="fas fa-arrow-up"></i> +12% bu ay</span>
+        </div>
+        <div class="card">
+            <p>Aktif Müşteriler</p>
+            <div class="balance">1,402</div>
+            <span>Yeni katılan: 24</span>
+        </div>
+        <div class="card">
+            <p>Günlük İşlem Hacmi</p>
+            <div class="balance">₺85,430.50</div>
+            <span>İşlem sayısı: 342</span>
+        </div>
+    </div>
+
+    <h3>Son İşlemler</h3>
+    <table class="transaction-table">
+        <thead>
+            <tr>
+                <th>Müşteri</th>
+                <th>Tarih</th>
+                <th>Miktar</th>
+                <th>Durum</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Ahmet Yılmaz</td>
+                <td>27.04.2026</td>
+                <td>₺4,500.00</td>
+                <td><span class="status-pill status-up">Tamamlandı</span></td>
+            </tr>
+            <tr>
+                <td>Mehmet Kaya</td>
+                <td>26.04.2026</td>
+                <td>₺12,000.00</td>
+                <td><span class="status-pill status-up">Tamamlandı</span></td>
+            </tr>
+            <tr>
+                <td>Ayşe Demir</td>
+                <td>26.04.2026</td>
+                <td>₺850.00</td>
+                <td><span class="status-pill status-up">Tamamlandı</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="ci-cd-status">
+    <i class="fas fa-check-circle" style="color: var(--success);"></i>
+    <b>CI/CD Canlı Yayında</b><br>
+    <small>Sunucu: AWS EC2 (Ubuntu)</small><br>
+    <small>Dağıtım: Docker Container</small>
+</div>
+
 </body>
 </html>
