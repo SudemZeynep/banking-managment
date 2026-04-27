@@ -1,0 +1,60 @@
+name: Banking Management CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [ closed ]
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    # Sadece push yapıldığında veya pull request merge edildiğinde çalışır
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # 1. JAR Oluşturma (Hocanın 2. maddesi)
+      - name: Build with Gradle
+        run: |
+          chmod +x gradlew
+          ./gradlew build -x test
+
+      # 2. Dockerhub Login (Hocanın 4. maddesi)
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3. Docker Image Build & Push (Hocanın 3. ve 4. maddesi)
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/banking-app:latest
+
+      # 4. EC2 Üzerinde Çalıştırma (Hocanın 5. maddesi)
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Dockerhub'dan en yeni imajı çek
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banking-app:latest
+            # Varsa eski konteyneri durdur ve yenisini başlat
+            docker-compose down || true
+            docker-compose up -d
