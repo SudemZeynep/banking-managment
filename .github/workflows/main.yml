@@ -3,14 +3,9 @@ name: Banking Management CI/CD
 on:
   push:
     branches: [ main ]
-  pull_request:
-    types: [ closed ]
-    branches: [ main ]
 
 jobs:
   build-and-deploy:
-    # Sadece push yapıldığında veya pull request merge edildiğinde çalışır
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
 
     steps:
@@ -24,28 +19,26 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # 1. JAR Oluşturma (Hocanın 2. maddesi)
+      # Dosyalar myapp/myapp içinde olduğu için o klasöre girmesini söylüyoruz
       - name: Build with Gradle
+        working-directory: ./myapp/myapp
         run: |
           chmod +x gradlew
           ./gradlew build -x test
 
-      # 2. Dockerhub Login (Hocanın 4. maddesi)
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 3. Docker Image Build & Push (Hocanın 3. ve 4. maddesi)
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./myapp/myapp
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/banking-app:latest
 
-      # 4. EC2 Üzerinde Çalıştırma (Hocanın 5. maddesi)
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -53,8 +46,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Dockerhub'dan en yeni imajı çek
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/banking-app:latest
-            # Varsa eski konteyneri durdur ve yenisini başlat
-            docker-compose down || true
+            # EC2 tarafında docker-compose.yml dosyasının nerede olduğunu belirtmek gerekebilir
+            # Eğer hata verirse burayı da düzenleyeceğiz
             docker-compose up -d
